@@ -20,109 +20,41 @@
 #include "hardware.h"
 #include "delay.h"
 
-//-----------------------------------------------------------------------------
-// comment out (undefine!) if you don't want PS, AS or OE signals
-
-//#define HAVE_PS_MODE 1
-//#define HAVE_AS_MODE 1
-//#define HAVE_OE_LED  1
-
 // comment in (define!) if you want outputs disabled when possible
-//#define HAVE_OENABLE 1
+#define HAVE_OENABLE 1
 
 //-----------------------------------------------------------------------------
 
 /* JTAG TCK, AS/PS DCLK */
 
-__sbit __at 0xA2          TCK; /* Port C.2 */
-#define bmTCKOE       bmBIT2
+__sbit __at 0xB5          TCK; /* Port D.5 */
+#define bmTCKOE       bmBIT5
 #define SetTCK(x)     do{TCK=(x);}while(0)
 
 /* JTAG TDI, AS ASDI, PS DATA0 */
 
-__sbit __at 0xA0          TDI; /* Port C.0 */
-#define bmTDIOE       bmBIT0
+__sbit __at 0xB4          TDI; /* Port D.4 */
+#define bmTDIOE       bmBIT4
 #define SetTDI(x)     do{TDI=(x);}while(0)
 
 /* JTAG TMS, AS/PS nCONFIG */
 
-__sbit __at 0xA3          TMS; /* Port C.3 */
-#define bmTMSOE       bmBIT3
+__sbit __at 0xB7          TMS; /* Port D.7 */
+#define bmTMSOE       bmBIT7
 #define SetTMS(x)     do{TMS=(x);}while(0)
 
 /* JTAG TDO, AS/PS CONF_DONE */
 
-__sbit __at 0xA1          TDO; /* Port C.1 */
-#define bmTDOOE       bmBIT1
+__sbit __at 0xB6          TDO; /* Port D.6 */
+#define bmTDOOE       bmBIT6
 #define GetTDO(x)     TDO
 
-//-----------------------------------------------------------------------------
-
-#if defined(HAVE_PS_MODE) || defined(HAVE_AS_MODE)
-
-  /* AS DATAOUT, PS nSTATUS */
-
-  __sbit __at 0xA6        ASDO; /* Port C.6 */
-  #define bmASDOOE    bmBIT6
-  #define GetASDO(x)  ASDO
-
-#else
-
-  #define bmASDOOE    0
-  #define GetASDO(x)  1
-
-#endif
+#define GetASDO() 1
 
 //-----------------------------------------------------------------------------
 
-#if defined(HAVE_AS_MODE)
-
-  /* AS Mode nCS */
-
-  __sbit __at 0xA4        NCS; /* Port C.4 */
-  #define bmNCSOE     bmBIT4
-  #define SetNCS(x)   do{NCS=(x);}while(0)
-  #define GetNCS(x)   NCS
-
-  /* AS Mode nCE */
-
-  __sbit __at 0xA5        NCE; /* Port C.5 */
-  #define bmNCEOE     bmBIT5
-  #define SetNCE(x)   do{NCE=(x);}while(0)
-
-  unsigned char ProgIO_ShiftInOut_AS(unsigned char x);
-
-#else
-
-  #define bmNCSOE     0
-  #define SetNCS(x)   while(0){}
-  #define GetNCS(x)   1
-  #define bmNCEOE     0
-  #define SetNCE(x)   while(0){}
-
-  #define ProgIO_ShiftInOut_AS(x) ProgIO_ShiftInOut(x)
-
-#endif
-
-//-----------------------------------------------------------------------------
-
-#ifdef HAVE_OE_LED
-
-  __sbit __at 0xA7        OELED; /* Port C.7 */
-  #define bmOELEDOE   bmBIT7
-  #define SetOELED(x) do{OELED=(x);}while(0)
-
-#else
-
-  #define bmOELEDOE   0
-  #define SetOELED(x) while(0){}
-
-#endif
-
-//-----------------------------------------------------------------------------
-
-#define bmPROGOUTOE (bmTCKOE|bmTDIOE|bmTMSOE|bmNCEOE|bmNCSOE|bmOELEDOE)
-#define bmPROGINOE  (bmTDOOE|bmASDOOE)
+#define bmPROGOUTOE (bmTCKOE|bmTDIOE|bmTMSOE)
+#define bmPROGINOE  (bmTDOOE)
 
 //-----------------------------------------------------------------------------
 
@@ -131,7 +63,6 @@ void ProgIO_Poll(void)    {}
 void ProgIO_Enable(void)  {}
 void ProgIO_Disable(void) {}
 void ProgIO_Deinit(void)  {}
-
 
 void ProgIO_Init(void)
 {
@@ -144,16 +75,15 @@ void ProgIO_Init(void)
   // Use internal 48 MHz, enable output, use "Port" mode for all pins
   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
 
-  // power on the onboard FPGA and all other VCCs, de-assert RESETN
-  IOE = 0x1F;
-  OEE = 0x1F;
   mdelay(500); // wait for supply to come up
-
+/*
 #ifdef HAVE_OENABLE
-  OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
+  OED=(OED&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
 #else
-  OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
+  OED=(OED&~bmPROGINOE) | bmPROGOUTOE; // Output enable
 #endif
+*/
+  OED = bmPROGOUTOE;// Output enable
 }
 
 void ProgIO_Set_State(unsigned char d)
@@ -169,24 +99,17 @@ void ProgIO_Set_State(unsigned char d)
    */
 
 #ifdef HAVE_OENABLE
-  if((d & bmBIT5) == 0)
-    OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
+  //if((d & bmBIT5) == 0)
+  //  OED=bmPROGOUTOE;//OED=(OED&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
 #endif
 
   SetTCK((d & bmBIT0) ? 1 : 0);
   SetTMS((d & bmBIT1) ? 1 : 0);
-#ifdef HAVE_AS_MODE
-  SetNCE((d & bmBIT2) ? 1 : 0);
-  SetNCS((d & bmBIT3) ? 1 : 0);
-#endif
   SetTDI((d & bmBIT4) ? 1 : 0);
-#ifdef HAVE_OE_LED
-  SetOELED((d & bmBIT5) ? 1 : 0);
-#endif
 
 #ifdef HAVE_OENABLE
-  if((d & bmBIT5) != 0)
-    OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
+  //if((d & bmBIT5) != 0)
+  //  OED = bmPROGOUTOE;//OED=(OED&~bmPROGINOE) | bmPROGOUTOE; // Output enable
 #endif
 }
 
@@ -266,31 +189,7 @@ void ProgIO_ShiftOut(unsigned char c)
   __endasm;
 }
 
-/*
-;; For ShiftInOut, the timing is a little more
-;; critical because we have to read _TDO/shift/set _TDI
-;; when _TCK is low. But 20% duty cycle __at 48/4/5 MHz
-;; is just like 50% __at 6 Mhz, and that's still acceptable
-*/
-
-#if HAVE_AS_MODE
-
-unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c);
-unsigned char ProgIO_ShiftInOut_AS(unsigned char c);
-
 unsigned char ProgIO_ShiftInOut(unsigned char c)
-{
-  if(GetNCS(x)) return ProgIO_ShiftInOut_JTAG(c);
-  return ProgIO_ShiftInOut_AS(c);
-}
-
-#else /* HAVE_AS_MODE */
-
-#define ProgIO_ShiftInOut_JTAG(x) ProgIO_ShiftInOut(x)
-
-#endif
-
-unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
 {
   /* Shift out byte C, shift in from TDO:
    *
@@ -366,83 +265,5 @@ unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
 
   return c;
 }
-
-#ifdef HAVE_AS_MODE
-
-unsigned char ProgIO_ShiftInOut_AS(unsigned char c)
-{
-  /* Shift out byte C, shift in from TDO:
-   *
-   * 8x {
-   *   Read carry from TDO
-   *   Output least significant bit on TDI
-   *   Raise TCK
-   *   Shift c right, append carry (TDO) __at left
-   *   Lower TCK
-   * }
-   * Return c.
-   */
-
-  (void)c; /* argument passed in DPL */
-
-  __asm
-        MOV  A,DPL
-
-        ;; Bit0
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit1
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit2
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit3
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit4
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit5
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit6
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit7
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-
-        MOV  DPL,A
-        ret
-  __endasm;
-  return c;
-}
-
-#endif /* HAVE_AS_MODE */
 
 
