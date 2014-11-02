@@ -1,4 +1,4 @@
-import serial, sys, math, struct, time
+import serial, sys, math, struct, time, numpy
 
 s = serial.Serial("COM42", 460800)
 
@@ -37,14 +37,25 @@ def setFrequency(freq_hertz):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print "Usage: set_frequency.py FLOAT_FREQ_IN_HERTZ [TO_FREQ]"
+        print "Usage: set_frequency.py FLOAT_FREQ_IN_HERTZ [MODE:rnd,to] [TO_FREQ] [PAUSE_MS] [STEPS]"
     elif len(sys.argv) == 2:
         setFrequency(float(sys.argv[1]))
+    elif sys.argv[2] != "rnd":
+        fromF = float(sys.argv[1])
+        toF = float(sys.argv[3])
+        pause = 0.1 if len(sys.argv) < 5 else float(sys.argv[4]) / 1000
+        steps = 20 if len(sys.argv) < 6 else int(sys.argv[5])
+        for freq in numpy.linspace(fromF, toF, steps):
+            setFrequency(freq)
+            time.sleep(pause)
+            print "Freq: %f" % freq
     else:
         fromF = float(sys.argv[1])
-        toF = float(sys.argv[2])
-        import numpy
-        for freq in numpy.linspace(fromF, toF, 20):
+        toF = float(sys.argv[3])
+        pause = 0.1 if len(sys.argv) < 5 else float(sys.argv[4]) / 1000
+        while True:
+            r = numpy.random.rand()
+            freq = fromF + r * (toF - fromF)
             setFrequency(freq)
-            #time.sleep(0.1)
+            time.sleep(pause)
             print "Freq: %f" % freq
