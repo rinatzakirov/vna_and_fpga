@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiamondModule name="mgt" module="mgt" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2014 10 27 23:32:29.693" version="8.2" type="Module" synthesis="synplify" source_format="VHDL">
+  <Package>
+		<File name="mgt.lpc" type="lpc" modified="2014 10 27 23:32:27.793"/>
+		<File name="mgt.pp" type="pp" modified="2014 10 27 23:32:27.793"/>
+		<File name="mgt.sym" type="sym" modified="2014 10 27 23:32:28.120"/>
+		<File name="mgt.tft" type="tft" modified="2014 10 27 23:32:27.813"/>
+		<File name="mgt.txt" type="pcs_module" modified="2014 10 27 23:32:27.813"/>
+		<File name="mgt.vhd" type="top_level_vhdl" modified="2014 10 27 23:32:27.813"/>
+  </Package>
+</DiamondModule>

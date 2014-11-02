@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BaliProject version="3.2" title="mgt_frequency_generator" device="LFE3-35EA-6FN484C" default_implementation="mgt_frequency_generator">
+    <Options/>
+    <Implementation title="mgt_frequency_generator" dir="mgt_frequency_generator" description="mgt_frequency_generator" synthesis="synplify" default_strategy="Strategy1">
+        <Options def_top="top_level" top="top_level"/>
+        <Source name="mgt.ipx" type="IPX_Module" type_short="IPX">
+            <Options/>
+        </Source>
+        <Source name="mgt.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
+        <Source name="top_level.vhd" type="VHDL" type_short="VHDL">
+            <Options top_module="top_level"/>
+        </Source>
+        <Source name="phase_accum.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
+        <Source name="parallel_nco.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
+        <Source name="rs232_sink_block.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
+        <Source name="rs232_source_block.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
+        <Source name="mgt_frequency_generator.lpf" type="Logic Preference" type_short="LPF">
+            <Options/>
+        </Source>
+        <Source name="mgt_frequency_generator/mgt_frequency_generator.xcf" type="Programming Project File" type_short="Programming">
+            <Options/>
+        </Source>
+    </Implementation>
+    <Strategy name="Strategy1" file="Strategy1.sty"/>
+</BaliProject>
